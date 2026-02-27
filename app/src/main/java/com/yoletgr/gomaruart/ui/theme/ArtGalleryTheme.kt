@@ -28,6 +28,7 @@ private val LightColorScheme = lightColorScheme(
 )
 
 @Composable
+
 fun ArtGalleryTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
