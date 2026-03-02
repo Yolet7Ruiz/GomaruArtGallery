@@ -1,6 +1,7 @@
 package com.yoletgr.gomaruart.feature.artgallery.di
 
 import com.yoletgr.gomaruart.feature.artgallery.data.datasources.remote.api.ArtApi
+import com.yoletgr.gomaruart.feacture.artgallery.data.datasources.remote.api.AuthApi
 import com.yoletgr.gomaruart.feature.artgallery.data.repositories.ArtGalleryRepositoryImpl
 import com.yoletgr.gomaruart.feature.artgallery.domain.repositories.ArtRepository
 import com.yoletgr.gomaruart.feature.artgallery.domain.usecase.*
@@ -12,7 +13,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 object ArtGalleryProvider {
-    private const val BASE_URL = "http://192.168.100.27:8080/" // Cambiar por la IP
+    private const val BASE_URL = "http://10.199.46.177:8080/"
 
     private val client = OkHttpClient.Builder()
         .addInterceptor(HttpLoggingInterceptor().apply {
@@ -35,8 +36,12 @@ object ArtGalleryProvider {
         retrofit.create(ArtApi::class.java)
     }
 
+    private val authApi: AuthApi by lazy {
+        retrofit.create(AuthApi::class.java)
+    }
+
     private val artRepository: ArtRepository by lazy {
-        ArtGalleryRepositoryImpl(artApi)
+        ArtGalleryRepositoryImpl(artApi, authApi)
     }
 
     val getArtUseCase by lazy { GetArtUseCase(artRepository) }
@@ -50,7 +55,8 @@ object ArtGalleryProvider {
             getArtUseCase = getArtUseCase,
             addArtUseCase = addArtUseCase,
             deleteArtUseCase = deleteArtUseCase,
-            updateArtUseCase = updateArtUseCase
+            updateArtUseCase = updateArtUseCase,
+            loginUseCase = loginUseCase
         )
     }
 }

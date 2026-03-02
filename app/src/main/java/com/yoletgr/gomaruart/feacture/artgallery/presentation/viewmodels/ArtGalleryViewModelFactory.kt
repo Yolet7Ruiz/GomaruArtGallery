@@ -8,7 +8,8 @@ class ArtGalleryViewModelFactory(
     private val getArtUseCase: GetArtUseCase,
     private val addArtUseCase: AddArtUseCase,
     private val deleteArtUseCase: DeleteArtUseCase,
-    private val updateArtUseCase: UpdateArtUseCase
+    private val updateArtUseCase: UpdateArtUseCase,
+    private val loginUseCase: LoginUseCase
 ) : ViewModelProvider.Factory {
 
     @Suppress("UNCHECKED_CAST")
@@ -17,7 +18,8 @@ class ArtGalleryViewModelFactory(
             getArtUseCase = getArtUseCase,
             addArtUseCase = addArtUseCase,
             deleteArtUseCase = deleteArtUseCase,
-            updateArtUseCase = updateArtUseCase
+            updateArtUseCase = updateArtUseCase,
+            loginUseCase = loginUseCase
         ) as T
     }
 }

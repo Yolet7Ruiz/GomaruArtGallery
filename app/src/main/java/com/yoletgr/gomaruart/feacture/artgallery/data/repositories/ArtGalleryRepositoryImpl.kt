@@ -1,5 +1,7 @@
 package com.yoletgr.gomaruart.feature.artgallery.data.repositories
 
+import com.yoletgr.gomaruart.feacture.artgallery.data.datasources.remote.api.AuthApi
+import com.yoletgr.gomaruart.feacture.artgallery.data.datasources.remote.models.LoginRequest
 import com.yoletgr.gomaruart.feature.artgallery.data.datasources.remote.api.ArtApi
 import com.yoletgr.gomaruart.feature.artgallery.data.datasources.remote.mapper.toDomain
 import com.yoletgr.gomaruart.feature.artgallery.data.datasources.remote.mapper.toDto
@@ -8,34 +10,43 @@ import com.yoletgr.gomaruart.feature.artgallery.domain.repositories.ArtRepositor
 import java.io.IOException
 
 class ArtGalleryRepositoryImpl(
-    private val api: ArtApi
+    private val artApi: ArtApi,
+    private val authApi: AuthApi
 ) : ArtRepository {
 
     override suspend fun getArtItems(): List<ArtItem> = try {
-        api.fetchAll().map { it.toDomain() }
+        val response = artApi.fetchAll()
+        if (response.isSuccessful) {
+            response.body()?.map { it.toDomain() } ?: emptyList()
+        } else {
+            emptyList()
+        }
     } catch (e: IOException) {
         emptyList()
     }
 
     override suspend fun addArtItem(item: ArtItem): Boolean = try {
-        api.create(item.toDto()).isSuccessful
+        artApi.create(item.toDto()).isSuccessful
     } catch (e: IOException) {
         false
     }
 
     override suspend fun deleteArtItem(id: Int): Boolean = try {
-        api.delete(id).isSuccessful
+        artApi.delete(id).isSuccessful
     } catch (e: IOException) {
         false
     }
 
     override suspend fun updateArtItem(item: ArtItem): Boolean = try {
-        api.update(item.id, item.toDto()).isSuccessful
+        artApi.update(item.id, item.toDto()).isSuccessful
     } catch (e: IOException) {
         false
     }
 
-    override suspend fun login(username: String, password: String): Boolean {
-        return username == "admin@art.com" && password == "admin123"
+    override suspend fun login(username: String, password: String): Boolean = try {
+        val response = authApi.login(LoginRequest(username, password))
+        response.isSuccessful && response.body()?.success == true
+    } catch (e: IOException) {
+        false
     }
 }

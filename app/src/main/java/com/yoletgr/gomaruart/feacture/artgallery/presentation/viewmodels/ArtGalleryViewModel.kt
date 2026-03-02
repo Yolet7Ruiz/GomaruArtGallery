@@ -14,7 +14,8 @@ class ArtGalleryViewModel(
     private val getArtUseCase: GetArtUseCase,
     private val addArtUseCase: AddArtUseCase,
     private val deleteArtUseCase: DeleteArtUseCase,
-    private val updateArtUseCase: UpdateArtUseCase
+    private val updateArtUseCase: UpdateArtUseCase,
+    private val loginUseCase: LoginUseCase  // ← AGREGAR
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ArtGalleryUIState(isLoading = true))
@@ -22,6 +23,26 @@ class ArtGalleryViewModel(
 
     init {
         loadArt()
+    }
+
+    fun login(username: String, password: String) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            try {
+                val success = loginUseCase(username, password)
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        isLoggedIn = success,
+                        errorMessage = if (success) null else "Credenciales incorrectas"
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(isLoading = false, errorMessage = e.message)
+                }
+            }
+        }
     }
 
     fun loadArt() {
