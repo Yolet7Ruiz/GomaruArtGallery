@@ -1,53 +1,45 @@
-package com.yoletgr.gomaruart.feature.artgallery.presentation.screens
+package com.yoletgr.gomaruart.feacture.artgallery.presentation.screens
 
-import android.net.Uri
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
 import com.yoletgr.gomaruart.feature.artgallery.domain.entities.ArtItem
 import com.yoletgr.gomaruart.feature.artgallery.presentation.viewmodels.ArtGalleryViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddArtScreen(
+fun UpdateArtScreen(
+    obra: ArtItem,
     viewModel: ArtGalleryViewModel,
     onNavigateBack: () -> Unit
 ) {
-    // --- NUEVO: Limpiamos los campos al iniciar para que no aparezcan datos viejos ---
-    LaunchedEffect(Unit) {
-        viewModel.clearForm()
-    }
-
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        // Enviamos la URI directamente al ViewModel
-        uri?.let { viewModel.onImageChange(it) }
+    // Elevamos el estado: Cargamos los datos de la obra en el ViewModel al iniciar
+    LaunchedEffect(obra) {
+        viewModel.loadArtToEdit(obra)
     }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Agregar Obra") },
+                title = { Text("Editar Obra") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Atrás")
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.White
+                )
             )
         }
     ) { paddingValues ->
@@ -58,33 +50,7 @@ fun AddArtScreen(
                 .padding(16.dp)
                 .verticalScroll(rememberScrollState())
         ) {
-            // Vista previa leyendo de la URI en el ViewModel
-            if (viewModel.selectedImageUri != null) {
-                AsyncImage(
-                    model = viewModel.selectedImageUri,
-                    contentDescription = "Vista previa",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp)
-                        .clip(RoundedCornerShape(12.dp)),
-                    contentScale = ContentScale.Crop
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-            }
-
-            Button(
-                onClick = { launcher.launch("image/*") },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = if (viewModel.selectedImageUri == null) Color(0xFF7C3AED) else Color.Gray
-                )
-            ) {
-                Text(if (viewModel.selectedImageUri == null) "Seleccionar Imagen" else "Cambiar Imagen")
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Título (Lee y Escribe en el ViewModel)
+            // Título: Lee del ViewModel y le avisa de cambios
             OutlinedTextField(
                 value = viewModel.titleInput,
                 onValueChange = { viewModel.onTitleChange(it) },
@@ -95,7 +61,7 @@ fun AddArtScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Descripción (Lee y Escribe en el ViewModel)
+            // Descripción: Lee del ViewModel y le avisa de cambios
             OutlinedTextField(
                 value = viewModel.descriptionInput,
                 onValueChange = { viewModel.onDescriptionChange(it) },
@@ -107,18 +73,19 @@ fun AddArtScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Precio (Lee y Escribe en el ViewModel)
+            // Precio: Lee del ViewModel y le avisa de cambios
             OutlinedTextField(
                 value = viewModel.priceInput,
                 onValueChange = { viewModel.onPriceChange(it) },
                 label = { Text("Precio") },
                 modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 shape = RoundedCornerShape(12.dp)
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Categoría (Estado elevado al ViewModel)
+            // Selector de Categoría usando el estado del ViewModel
             Text("Categoría:", style = MaterialTheme.typography.labelLarge)
             Row(modifier = Modifier.padding(top = 8.dp)) {
                 CategoryButton(
@@ -135,6 +102,7 @@ fun AddArtScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            // Botones de Acción
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -142,15 +110,15 @@ fun AddArtScreen(
                 Button(
                     onClick = {
                         if (viewModel.titleInput.isNotBlank() && viewModel.priceInput.isNotBlank()) {
-                            val newArt = ArtItem(
-                                id = 0,
+                            // Creamos la copia con los datos actualizados del ViewModel
+                            val updatedArt = obra.copy(
                                 title = viewModel.titleInput,
                                 description = viewModel.descriptionInput,
-                                price = viewModel.priceInput.toDoubleOrNull() ?: 0.0,
-                                filePath = viewModel.selectedImageUri?.toString() ?: "",
+                                price = viewModel.priceInput.toDoubleOrNull() ?: obra.price,
                                 categoryId = viewModel.categoryIdInput
                             )
-                            viewModel.addArt(newArt)
+                            viewModel.updateArt(updatedArt)
+                            // El cierre de la pantalla lo maneja el ViewModel al limpiar el estado
                             onNavigateBack()
                         }
                     },
@@ -158,7 +126,7 @@ fun AddArtScreen(
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7C3AED)),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text("Guardar Obra")
+                    Text("Actualizar")
                 }
 
                 OutlinedButton(

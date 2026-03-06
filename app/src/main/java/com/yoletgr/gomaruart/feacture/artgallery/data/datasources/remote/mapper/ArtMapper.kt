@@ -4,19 +4,19 @@ import com.yoletgr.gomaruart.feature.artgallery.data.datasources.remote.models.A
 import com.yoletgr.gomaruart.feature.artgallery.domain.entities.ArtItem
 
 fun ArtDto.toDomain() = ArtItem(
-    id = id,
-    title = title,
-    description = body,
-    price = price,
-    filePath = filePath,
-    categoryId = categoryId
+    id = id_obra ?: 0,
+    title = titulo,
+    description = descripcion,
+    price = precio,
+    filePath = imagen_url,
+    categoryId = id_categoria
 )
 
 fun ArtItem.toDto() = ArtDto(
-    id = id,
-    title = title,
-    body = description,
-    price = price,
-    filePath = filePath,
-    categoryId = categoryId
+    id_obra = if (id == 0) null else id, // null para nuevos, ID para editar
+    titulo = title,
+    descripcion = description,
+    precio = price,
+    imagen_url = filePath,
+    id_categoria = categoryId
 )

@@ -13,8 +13,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 object ArtGalleryProvider {
-    private const val BASE_URL = "http://10.199.46.177:8080/"
-
+    private const val BASE_URL = "http://10.0.2.2:8080/"
     private val client = OkHttpClient.Builder()
         .addInterceptor(HttpLoggingInterceptor().apply {
             level = HttpLoggingInterceptor.Level.BODY

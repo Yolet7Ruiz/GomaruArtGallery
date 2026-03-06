@@ -7,7 +7,6 @@ import com.yoletgr.gomaruart.feature.artgallery.data.datasources.remote.mapper.t
 import com.yoletgr.gomaruart.feature.artgallery.data.datasources.remote.mapper.toDto
 import com.yoletgr.gomaruart.feature.artgallery.domain.entities.ArtItem
 import com.yoletgr.gomaruart.feature.artgallery.domain.repositories.ArtRepository
-import java.io.IOException
 
 class ArtGalleryRepositoryImpl(
     private val artApi: ArtApi,
@@ -21,32 +20,36 @@ class ArtGalleryRepositoryImpl(
         } else {
             emptyList()
         }
-    } catch (e: IOException) {
+    } catch (e: Exception) {
         emptyList()
     }
 
     override suspend fun addArtItem(item: ArtItem): Boolean = try {
-        artApi.create(item.toDto()).isSuccessful
-    } catch (e: IOException) {
+        val response = artApi.create(item.toDto())
+        response.isSuccessful
+    } catch (e: Exception) {
         false
     }
 
     override suspend fun deleteArtItem(id: Int): Boolean = try {
-        artApi.delete(id).isSuccessful
-    } catch (e: IOException) {
+        val response = artApi.delete(id)
+        response.isSuccessful
+    } catch (e: Exception) {
         false
     }
 
+    // ACTUALIZADO: Ahora usa artApi.update para coincidir con tu interfaz
     override suspend fun updateArtItem(item: ArtItem): Boolean = try {
-        artApi.update(item.id, item.toDto()).isSuccessful
-    } catch (e: IOException) {
+        val response = artApi.update(item.id, item.toDto())
+        response.isSuccessful
+    } catch (e: Exception) {
         false
     }
 
     override suspend fun login(username: String, password: String): Boolean = try {
         val response = authApi.login(LoginRequest(username, password))
         response.isSuccessful && response.body()?.success == true
-    } catch (e: IOException) {
+    } catch (e: Exception) {
         false
     }
 }

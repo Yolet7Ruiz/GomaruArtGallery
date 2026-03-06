@@ -19,20 +19,12 @@ fun LoginScreen(
     viewModel: ArtGalleryViewModel,
     onLoginSuccess: () -> Unit
 ) {
-    var username by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var error by remember { mutableStateOf(false) }
-
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
-    // Observar cambios en el estado
-    LaunchedEffect(state.isLoggedIn, state.errorMessage) {
+    // Solo observamos el éxito del login para navegar
+    LaunchedEffect(state.isLoggedIn) {
         if (state.isLoggedIn) {
             onLoginSuccess()
-            error = false
-        }
-        if (state.errorMessage != null) {
-            error = true
         }
     }
 
@@ -43,7 +35,6 @@ fun LoginScreen(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
         Surface(
             modifier = Modifier.size(80.dp),
             shape = RoundedCornerShape(16.dp),
@@ -65,31 +56,32 @@ fun LoginScreen(
         Spacer(modifier = Modifier.height(32.dp))
 
         OutlinedTextField(
-            value = username,
-            onValueChange = { username = it },
+            value = viewModel.loginEmail, // Lee del VM
+            onValueChange = { viewModel.onLoginEmailChange(it) }, // Escribe en el VM
             placeholder = { Text("Correo electrónico") },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
-            isError = error,
+            isError = viewModel.loginError || state.errorMessage != null,
             singleLine = true
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
         OutlinedTextField(
-            value = password,
-            onValueChange = { password = it },
+            value = viewModel.loginPassword, // Lee del VM
+            onValueChange = { viewModel.onLoginPasswordChange(it) }, // Escribe en el VM
             placeholder = { Text("Contraseña") },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
             visualTransformation = PasswordVisualTransformation(),
-            isError = error,
+            isError = viewModel.loginError || state.errorMessage != null,
             singleLine = true
         )
 
-        if (error) {
+        // Error dinámico desde el VM o el Estado global
+        if (viewModel.loginError || state.errorMessage != null) {
             Text(
-                text = "Usuario o contraseña incorrectos",
+                text = state.errorMessage ?: "Usuario o contraseña incorrectos",
                 color = Color.Red,
                 fontSize = 12.sp,
                 modifier = Modifier.padding(top = 8.dp)
@@ -106,13 +98,7 @@ fun LoginScreen(
         Spacer(modifier = Modifier.height(24.dp))
 
         Button(
-            onClick = {
-                if (username.isNotBlank() && password.isNotBlank()) {
-                        viewModel.login(username, password)
-                } else {
-                    error = true
-                }
-            },
+            onClick = { viewModel.performLogin() }, // Lógica delegada al VM
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
